@@ -4453,7 +4453,7 @@ var _Bitwise_shiftRightZfBy = F2(function(offset, a)
 {
 	return a >>> offset;
 });
-var author$project$Main$Blank = {$: 'Blank'};
+var author$project$Main$Empty = {$: 'Empty'};
 var author$project$Main$Pause = {$: 'Pause'};
 var author$project$Main$matrixColLength = 30;
 var author$project$Main$matrixRowLength = 20;
@@ -4957,7 +4957,7 @@ var author$project$Main$init = function (_n0) {
 		{
 			appState: author$project$Main$Pause,
 			cursorPosn: author$project$Main$cursorInitialPosn,
-			matrix: A3(author$project$Matrix$repeat, author$project$Main$matrixRowLength, author$project$Main$matrixColLength, author$project$Main$Blank)
+			matrix: A3(author$project$Matrix$repeat, author$project$Main$matrixRowLength, author$project$Main$matrixColLength, author$project$Main$Empty)
 		},
 		elm$core$Platform$Cmd$none);
 };
@@ -4989,7 +4989,7 @@ var author$project$Main$keyToMsg = function (key) {
 		case 'ArrowRight':
 			return author$project$Main$MoveCursor(author$project$Main$ArrowRight);
 		case '1':
-			return author$project$Main$SetState(author$project$Main$Blank);
+			return author$project$Main$SetState(author$project$Main$Empty);
 		case '2':
 			return author$project$Main$SetState(author$project$Main$Conductor);
 		case '3':
@@ -6189,8 +6189,8 @@ var author$project$Main$updateMatrix = function (model) {
 	var updateCell = F3(
 		function (row, col, centerstate) {
 			switch (centerstate.$) {
-				case 'Blank':
-					return author$project$Main$Blank;
+				case 'Empty':
+					return author$project$Main$Empty;
 				case 'Head':
 					return author$project$Main$Tail;
 				case 'Tail':
@@ -6394,7 +6394,7 @@ var author$project$Main$viewCommandBar = function (model) {
 var author$project$Main$cellSize = 30;
 var author$project$Main$fillColor = function (state) {
 	switch (state.$) {
-		case 'Blank':
+		case 'Empty':
 			return 'rgb(0,0,0)';
 		case 'Conductor':
 			return 'rgb(255,255,128)';
