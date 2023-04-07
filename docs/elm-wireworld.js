@@ -4453,7 +4453,6 @@ var _Bitwise_shiftRightZfBy = F2(function(offset, a)
 {
 	return a >>> offset;
 });
-var author$project$Main$Empty = {$: 'Empty'};
 var author$project$Main$Pause = {$: 'Pause'};
 var author$project$Main$matrixColLength = 30;
 var author$project$Main$matrixRowLength = 20;
@@ -4539,6 +4538,7 @@ var elm$core$Array$toList = function (array) {
 };
 var elm$core$Basics$idiv = _Basics_idiv;
 var author$project$Main$cursorInitialPosn = _Utils_Tuple2((author$project$Main$matrixRowLength / 2) | 0, (author$project$Main$matrixColLength / 2) | 0);
+var author$project$Main$Empty = {$: 'Empty'};
 var elm$core$Array$branchFactor = 32;
 var elm$core$Array$Array_elm_builtin = F4(
 	function (a, b, c, d) {
@@ -4727,6 +4727,7 @@ var author$project$Matrix$repeat = F3(
 			rowLength: rowLen
 		};
 	});
+var author$project$Main$initialMatrix = A3(author$project$Matrix$repeat, author$project$Main$matrixRowLength, author$project$Main$matrixColLength, author$project$Main$Empty);
 var elm$core$Basics$True = {$: 'True'};
 var elm$core$Result$isOk = function (result) {
 	if (result.$ === 'Ok') {
@@ -4954,11 +4955,7 @@ var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$Main$init = function (_n0) {
 	return _Utils_Tuple2(
-		{
-			appState: author$project$Main$Pause,
-			cursorPosn: author$project$Main$cursorInitialPosn,
-			matrix: A3(author$project$Matrix$repeat, author$project$Main$matrixRowLength, author$project$Main$matrixColLength, author$project$Main$Empty)
-		},
+		{appState: author$project$Main$Pause, cursorPosn: author$project$Main$cursorInitialPosn, matrix: author$project$Main$initialMatrix},
 		elm$core$Platform$Cmd$none);
 };
 var author$project$Main$Tick = function (a) {
@@ -6240,6 +6237,13 @@ var author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{appState: author$project$Main$Pause}));
+			case 'ClearAllState':
+				return A2(
+					when,
+					_Utils_eq(model.appState, author$project$Main$Editing),
+					_Utils_update(
+						model,
+						{matrix: author$project$Main$initialMatrix}));
 			case 'SetState':
 				var state = msg.a;
 				return A2(
@@ -6273,6 +6277,7 @@ var elm$html$Html$Events$on = F2(
 			elm$virtual_dom$VirtualDom$Normal(decoder));
 	});
 var author$project$Main$onKeyDown = A2(elm$html$Html$Events$on, 'keypress', author$project$Main$keyDecoder);
+var author$project$Main$ClearAllState = {$: 'ClearAllState'};
 var author$project$Main$EditModeOff = {$: 'EditModeOff'};
 var author$project$Main$EditModeOn = {$: 'EditModeOn'};
 var author$project$Main$Start = {$: 'Start'};
@@ -6387,6 +6392,18 @@ var author$project$Main$viewCommandBar = function (model) {
 						_List_fromArray(
 							[
 								elm$html$Html$text('Edit mode')
+							])),
+						A2(
+						elm$html$Html$button,
+						_List_fromArray(
+							[
+								elm$html$Html$Events$onClick(author$project$Main$ClearAllState),
+								elm$html$Html$Attributes$disabled(
+								!_Utils_eq(model.appState, author$project$Main$Editing))
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text('Clear all state')
 							]))
 					]))
 			]));
