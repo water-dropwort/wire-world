@@ -28,7 +28,7 @@ main =
 
 
 type CellState
-    = Blank
+    = Empty
     | Conductor
     | Head
     | Tail
@@ -95,7 +95,7 @@ cellSize =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { matrix = Mat.repeat matrixRowLength matrixColLength Blank
+    ( { matrix = Mat.repeat matrixRowLength matrixColLength Empty
       , cursorPosn = cursorInitialPosn
       , appState = Pause
       }
@@ -199,8 +199,8 @@ updateMatrix model =
     let
         updateCell row col centerstate =
             case centerstate of
-                Blank ->
-                    Blank
+                Empty ->
+                    Empty
 
                 Head ->
                     Tail
@@ -359,7 +359,7 @@ viewCursor row col =
 fillColor : CellState -> String
 fillColor state =
     case state of
-        Blank ->
+        Empty ->
             "rgb(0,0,0)"
 
         Conductor ->
@@ -416,7 +416,7 @@ keyToMsg key =
             MoveCursor ArrowRight
 
         "1" ->
-            SetState Blank
+            SetState Empty
 
         "2" ->
             SetState Conductor
