@@ -59,6 +59,7 @@ type Msg
     | Stop
     | EditModeOn
     | EditModeOff
+    | ClearAllState
     | MoveCursor Direction
     | SetState CellState
     | Tick Time.Posix
@@ -95,12 +96,17 @@ cellSize =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { matrix = Mat.repeat matrixRowLength matrixColLength Empty
+    ( { matrix = initialMatrix
       , cursorPosn = cursorInitialPosn
       , appState = Pause
       }
     , Cmd.none
     )
+
+
+initialMatrix : Mat.Matrix CellState
+initialMatrix =
+    Mat.repeat matrixRowLength matrixColLength Empty
 
 
 
@@ -129,6 +135,9 @@ update msg model =
 
         EditModeOff ->
             when (model.appState == Editing) { model | appState = Pause }
+
+        ClearAllState ->
+            when (model.appState == Editing) { model | matrix = initialMatrix }
 
         SetState state ->
             when (model.appState == Editing) (setStateToCursorPosn state model)
@@ -298,6 +307,11 @@ viewCommandBar model =
             , H.label
                 [ HA.for "chkeditmode" ]
                 [ H.text "Edit mode" ]
+            , H.button
+                [ HE.onClick ClearAllState
+                , HA.disabled (model.appState /= Editing)
+                ]
+                [ H.text "Clear all state" ]
             ]
         ]
 
