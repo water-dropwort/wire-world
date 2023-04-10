@@ -59,3 +59,16 @@ indexedMap f mat =
 toList : Matrix a -> List a
 toList mat =
     Array.toList mat.data
+
+
+fromList : Int -> Int -> List a -> Maybe (Matrix a)
+fromList rowLen colLen list =
+    if rowLen <= 0 || colLen <= 0 || List.length list /= (rowLen * colLen) then
+        Nothing
+
+    else
+        Just
+            { data = Array.fromList list
+            , rowLength = rowLen
+            , columnLength = colLen
+            }

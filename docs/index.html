@@ -8,8 +8,12 @@
   <body>
     <div id="elm-wireworld"></div>
     <script>
-      Elm.Main.init({
+      var app = Elm.Main.init({
       node: document.getElementById("elm-wireworld")
+      });
+
+      app.ports.showErrorMessage.subscribe(function(message) {
+      window.alert(message);
       });
     </script>
   </body>
