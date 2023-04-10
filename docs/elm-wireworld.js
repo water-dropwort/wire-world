@@ -4453,6 +4453,184 @@ var _Bitwise_shiftRightZfBy = F2(function(offset, a)
 {
 	return a >>> offset;
 });
+
+
+
+// DECODER
+
+var _File_decoder = _Json_decodePrim(function(value) {
+	// NOTE: checks if `File` exists in case this is run on node
+	return (typeof File !== 'undefined' && value instanceof File)
+		? elm$core$Result$Ok(value)
+		: _Json_expecting('a FILE', value);
+});
+
+
+// METADATA
+
+function _File_name(file) { return file.name; }
+function _File_mime(file) { return file.type; }
+function _File_size(file) { return file.size; }
+
+function _File_lastModified(file)
+{
+	return elm$time$Time$millisToPosix(file.lastModified);
+}
+
+
+// DOWNLOAD
+
+var _File_downloadNode;
+
+function _File_getDownloadNode()
+{
+	return _File_downloadNode || (_File_downloadNode = document.createElement('a'));
+}
+
+var _File_download = F3(function(name, mime, content)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var blob = new Blob([content], {type: mime});
+
+		// for IE10+
+		if (navigator.msSaveOrOpenBlob)
+		{
+			navigator.msSaveOrOpenBlob(blob, name);
+			return;
+		}
+
+		// for HTML5
+		var node = _File_getDownloadNode();
+		var objectUrl = URL.createObjectURL(blob);
+		node.href = objectUrl;
+		node.download = name;
+		_File_click(node);
+		URL.revokeObjectURL(objectUrl);
+	});
+});
+
+function _File_downloadUrl(href)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var node = _File_getDownloadNode();
+		node.href = href;
+		node.download = '';
+		node.origin === location.origin || (node.target = '_blank');
+		_File_click(node);
+	});
+}
+
+
+// IE COMPATIBILITY
+
+function _File_makeBytesSafeForInternetExplorer(bytes)
+{
+	// only needed by IE10 and IE11 to fix https://github.com/elm/file/issues/10
+	// all other browsers can just run `new Blob([bytes])` directly with no problem
+	//
+	return new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+}
+
+function _File_click(node)
+{
+	// only needed by IE10 and IE11 to fix https://github.com/elm/file/issues/11
+	// all other browsers have MouseEvent and do not need this conditional stuff
+	//
+	if (typeof MouseEvent === 'function')
+	{
+		node.dispatchEvent(new MouseEvent('click'));
+	}
+	else
+	{
+		var event = document.createEvent('MouseEvents');
+		event.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+		document.body.appendChild(node);
+		node.dispatchEvent(event);
+		document.body.removeChild(node);
+	}
+}
+
+
+// UPLOAD
+
+var _File_node;
+
+function _File_uploadOne(mimes)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		_File_node = document.createElement('input');
+		_File_node.type = 'file';
+		_File_node.accept = A2(elm$core$String$join, ',', mimes);
+		_File_node.addEventListener('change', function(event)
+		{
+			callback(_Scheduler_succeed(event.target.files[0]));
+		});
+		_File_click(_File_node);
+	});
+}
+
+function _File_uploadOneOrMore(mimes)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		_File_node = document.createElement('input');
+		_File_node.type = 'file';
+		_File_node.multiple = true;
+		_File_node.accept = A2(elm$core$String$join, ',', mimes);
+		_File_node.addEventListener('change', function(event)
+		{
+			var elmFiles = _List_fromArray(event.target.files);
+			callback(_Scheduler_succeed(_Utils_Tuple2(elmFiles.a, elmFiles.b)));
+		});
+		_File_click(_File_node);
+	});
+}
+
+
+// CONTENT
+
+function _File_toString(blob)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var reader = new FileReader();
+		reader.addEventListener('loadend', function() {
+			callback(_Scheduler_succeed(reader.result));
+		});
+		reader.readAsText(blob);
+		return function() { reader.abort(); };
+	});
+}
+
+function _File_toBytes(blob)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var reader = new FileReader();
+		reader.addEventListener('loadend', function() {
+			callback(_Scheduler_succeed(new DataView(reader.result)));
+		});
+		reader.readAsArrayBuffer(blob);
+		return function() { reader.abort(); };
+	});
+}
+
+function _File_toUrl(blob)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var reader = new FileReader();
+		reader.addEventListener('loadend', function() {
+			callback(_Scheduler_succeed(reader.result));
+		});
+		reader.readAsDataURL(blob);
+		return function() { reader.abort(); };
+	});
+}
+
 var author$project$Main$Pause = {$: 'Pause'};
 var author$project$Main$matrixColLength = 30;
 var author$project$Main$matrixRowLength = 20;
@@ -4970,7 +5148,7 @@ var author$project$Main$Head = {$: 'Head'};
 var author$project$Main$MoveCursor = function (a) {
 	return {$: 'MoveCursor', a: a};
 };
-var author$project$Main$Nothing = {$: 'Nothing'};
+var author$project$Main$Noop = {$: 'Noop'};
 var author$project$Main$SetState = function (a) {
 	return {$: 'SetState', a: a};
 };
@@ -4994,7 +5172,7 @@ var author$project$Main$keyToMsg = function (key) {
 		case '4':
 			return author$project$Main$SetState(author$project$Main$Tail);
 		default:
-			return author$project$Main$Nothing;
+			return author$project$Main$Noop;
 	}
 };
 var elm$json$Json$Decode$field = _Json_decodeField;
@@ -5942,6 +6120,12 @@ var author$project$Main$subscriptions = function (_n0) {
 				elm$browser$Browser$Events$onKeyDown(author$project$Main$keyDecoder)
 			]));
 };
+var author$project$Main$CsvLoaded = function (a) {
+	return {$: 'CsvLoaded', a: a};
+};
+var author$project$Main$CsvSelected = function (a) {
+	return {$: 'CsvSelected', a: a};
+};
 var author$project$Main$Editing = {$: 'Editing'};
 var author$project$Main$Working = {$: 'Working'};
 var author$project$Main$moveCursor = F2(
@@ -6065,6 +6249,143 @@ var author$project$Main$setStateToCursorPosn = F2(
 				matrix: A4(author$project$Matrix$set, row, col, state, model.matrix)
 			});
 	});
+var elm$json$Json$Encode$string = _Json_wrap;
+var author$project$Main$showErrorMessage = _Platform_outgoingPort('showErrorMessage', elm$json$Json$Encode$string);
+var elm$core$Array$fromListHelp = F3(
+	function (list, nodeList, nodeListSize) {
+		fromListHelp:
+		while (true) {
+			var _n0 = A2(elm$core$Elm$JsArray$initializeFromList, elm$core$Array$branchFactor, list);
+			var jsArray = _n0.a;
+			var remainingItems = _n0.b;
+			if (_Utils_cmp(
+				elm$core$Elm$JsArray$length(jsArray),
+				elm$core$Array$branchFactor) < 0) {
+				return A2(
+					elm$core$Array$builderToArray,
+					true,
+					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
+			} else {
+				var $temp$list = remainingItems,
+					$temp$nodeList = A2(
+					elm$core$List$cons,
+					elm$core$Array$Leaf(jsArray),
+					nodeList),
+					$temp$nodeListSize = nodeListSize + 1;
+				list = $temp$list;
+				nodeList = $temp$nodeList;
+				nodeListSize = $temp$nodeListSize;
+				continue fromListHelp;
+			}
+		}
+	});
+var elm$core$Array$fromList = function (list) {
+	if (!list.b) {
+		return elm$core$Array$empty;
+	} else {
+		return A3(elm$core$Array$fromListHelp, list, _List_Nil, 0);
+	}
+};
+var elm$core$Basics$neq = _Utils_notEqual;
+var author$project$Matrix$fromList = F3(
+	function (rowLen, colLen, list) {
+		return ((rowLen <= 0) || ((colLen <= 0) || (!_Utils_eq(
+			elm$core$List$length(list),
+			rowLen * colLen)))) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(
+			{
+				columnLength: colLen,
+				data: elm$core$Array$fromList(list),
+				rowLength: rowLen
+			});
+	});
+var elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return elm$core$Maybe$Nothing;
+		}
+	});
+var elm$core$Maybe$map2 = F3(
+	function (func, ma, mb) {
+		if (ma.$ === 'Nothing') {
+			return elm$core$Maybe$Nothing;
+		} else {
+			var a = ma.a;
+			if (mb.$ === 'Nothing') {
+				return elm$core$Maybe$Nothing;
+			} else {
+				var b = mb.a;
+				return elm$core$Maybe$Just(
+					A2(func, a, b));
+			}
+		}
+	});
+var elm$core$String$lines = _String_lines;
+var author$project$Main$toCellStateMatrix = function (content) {
+	var toState = function (str) {
+		switch (str) {
+			case '1':
+				return elm$core$Maybe$Just(author$project$Main$Empty);
+			case '2':
+				return elm$core$Maybe$Just(author$project$Main$Conductor);
+			case '3':
+				return elm$core$Maybe$Just(author$project$Main$Head);
+			case '4':
+				return elm$core$Maybe$Just(author$project$Main$Tail);
+			default:
+				return elm$core$Maybe$Nothing;
+		}
+	};
+	var lines = elm$core$String$lines(content);
+	var appendState = F2(
+		function (strState, line) {
+			return A3(
+				elm$core$Maybe$map2,
+				F2(
+					function (state, line_) {
+						return _Utils_ap(
+							line_,
+							_List_fromArray(
+								[state]));
+					}),
+				toState(strState),
+				line);
+		});
+	var appendLine = F2(
+		function (strLine, flattenedLines) {
+			return A2(
+				elm$core$Maybe$andThen,
+				function (flattenedLines_) {
+					var strCols = A2(elm$core$String$split, ',', strLine);
+					return _Utils_eq(
+						elm$core$List$length(strCols),
+						author$project$Main$matrixColLength) ? A2(
+						elm$core$Maybe$andThen,
+						function (stateCols) {
+							return elm$core$Maybe$Just(
+								_Utils_ap(flattenedLines_, stateCols));
+						},
+						A3(
+							elm$core$List$foldl,
+							appendState,
+							elm$core$Maybe$Just(_List_Nil),
+							strCols)) : elm$core$Maybe$Nothing;
+				},
+				flattenedLines);
+		});
+	return _Utils_eq(
+		elm$core$List$length(lines),
+		author$project$Main$matrixRowLength) ? A2(
+		elm$core$Maybe$andThen,
+		A2(author$project$Matrix$fromList, author$project$Main$matrixRowLength, author$project$Main$matrixColLength),
+		A3(
+			elm$core$List$foldl,
+			appendLine,
+			elm$core$Maybe$Just(_List_Nil),
+			lines)) : elm$core$Maybe$Nothing;
+};
 var elm$core$Array$getHelp = F3(
 	function (shift, index, tree) {
 		getHelp:
@@ -6203,6 +6524,14 @@ var author$project$Main$updateMatrix = function (model) {
 			matrix: A2(author$project$Matrix$indexedMap, updateCell, model.matrix)
 		});
 };
+var elm$file$File$toString = _File_toString;
+var elm$file$File$Select$file = F2(
+	function (mimes, toMsg) {
+		return A2(
+			elm$core$Task$perform,
+			toMsg,
+			_File_uploadOne(mimes));
+	});
 var author$project$Main$update = F2(
 	function (msg, model) {
 		var when = F2(
@@ -6261,6 +6590,37 @@ var author$project$Main$update = F2(
 					when,
 					_Utils_eq(model.appState, author$project$Main$Working),
 					author$project$Main$updateMatrix(model));
+			case 'CsvRequested':
+				return _Utils_Tuple2(
+					model,
+					A2(
+						elm$file$File$Select$file,
+						_List_fromArray(
+							['text/csv']),
+						author$project$Main$CsvSelected));
+			case 'CsvSelected':
+				var file = msg.a;
+				return _Utils_Tuple2(
+					model,
+					A2(
+						elm$core$Task$perform,
+						author$project$Main$CsvLoaded,
+						elm$file$File$toString(file)));
+			case 'CsvLoaded':
+				var content = msg.a;
+				var _n1 = author$project$Main$toCellStateMatrix(content);
+				if (_n1.$ === 'Just') {
+					var mat = _n1.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{matrix: mat}),
+						elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(
+						model,
+						author$project$Main$showErrorMessage('Failed to import the csv file.'));
+				}
 			default:
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 		}
@@ -6278,11 +6638,11 @@ var elm$html$Html$Events$on = F2(
 	});
 var author$project$Main$onKeyDown = A2(elm$html$Html$Events$on, 'keypress', author$project$Main$keyDecoder);
 var author$project$Main$ClearAllState = {$: 'ClearAllState'};
+var author$project$Main$CsvRequested = {$: 'CsvRequested'};
 var author$project$Main$EditModeOff = {$: 'EditModeOff'};
 var author$project$Main$EditModeOn = {$: 'EditModeOn'};
 var author$project$Main$Start = {$: 'Start'};
 var author$project$Main$Stop = {$: 'Stop'};
-var elm$core$Basics$neq = _Utils_notEqual;
 var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$input = _VirtualDom_node('input');
@@ -6299,7 +6659,6 @@ var elm$html$Html$Attributes$boolProperty = F2(
 	});
 var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
 var elm$html$Html$Attributes$disabled = elm$html$Html$Attributes$boolProperty('disabled');
-var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -6361,6 +6720,18 @@ var author$project$Main$viewCommandBar = function (model) {
 				_List_fromArray(
 					[
 						elm$html$Html$text('Stop')
+					])),
+				A2(
+				elm$html$Html$button,
+				_List_fromArray(
+					[
+						elm$html$Html$Events$onClick(author$project$Main$CsvRequested),
+						elm$html$Html$Attributes$disabled(
+						_Utils_eq(model.appState, author$project$Main$Working))
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('Import Csv')
 					])),
 				A2(
 				elm$html$Html$div,

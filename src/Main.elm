@@ -1,7 +1,9 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Browser.Events
+import File exposing (File)
+import File.Select as Select
 import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
@@ -63,7 +65,10 @@ type Msg
     | MoveCursor Direction
     | SetState CellState
     | Tick Time.Posix
-    | Nothing
+    | CsvRequested
+    | CsvSelected File
+    | CsvLoaded String
+    | Noop
 
 
 
@@ -148,7 +153,21 @@ update msg model =
         Tick _ ->
             when (model.appState == Working) (updateMatrix model)
 
-        Nothing ->
+        CsvRequested ->
+            ( model, Select.file [ "text/csv" ] CsvSelected )
+
+        CsvSelected file ->
+            ( model, Task.perform CsvLoaded (File.toString file) )
+
+        CsvLoaded content ->
+            case toCellStateMatrix content of
+                Just mat ->
+                    ( { model | matrix = mat }, Cmd.none )
+
+                Nothing ->
+                    ( model, showErrorMessage "Failed to import the csv file." )
+
+        Noop ->
             ( model, Cmd.none )
 
 
@@ -255,6 +274,56 @@ neighborhoodHeadCount matrix row col =
         )
 
 
+toCellStateMatrix : String -> Maybe (Mat.Matrix CellState)
+toCellStateMatrix content =
+    let
+        lines =
+            String.lines content
+
+        toState str =
+            case str of
+                "1" ->
+                    Just Empty
+
+                "2" ->
+                    Just Conductor
+
+                "3" ->
+                    Just Head
+
+                "4" ->
+                    Just Tail
+
+                _ ->
+                    Nothing
+
+        appendState strState line =
+            Maybe.map2 (\state line_ -> line_ ++ [ state ]) (toState strState) line
+
+        appendLine strLine flattenedLines =
+            Maybe.andThen
+                (\flattenedLines_ ->
+                    let
+                        strCols =
+                            String.split "," strLine
+                    in
+                    if List.length strCols == matrixColLength then
+                        Maybe.andThen (\stateCols -> Just (flattenedLines_ ++ stateCols)) <|
+                            List.foldl appendState (Just []) strCols
+
+                    else
+                        Nothing
+                )
+                flattenedLines
+    in
+    if List.length lines == matrixRowLength then
+        Maybe.andThen (Mat.fromList matrixRowLength matrixColLength) <|
+            List.foldl appendLine (Just []) lines
+
+    else
+        Nothing
+
+
 
 -- view
 
@@ -287,6 +356,11 @@ viewCommandBar model =
             , HA.disabled (model.appState /= Working)
             ]
             [ H.text "Stop" ]
+        , H.button
+            [ HE.onClick CsvRequested
+            , HA.disabled (model.appState == Working)
+            ]
+            [ H.text "Import Csv" ]
         , H.div
             []
             [ H.input
@@ -442,4 +516,11 @@ keyToMsg key =
             SetState Tail
 
         _ ->
-            Nothing
+            Noop
+
+
+
+-- ports
+
+
+port showErrorMessage : String -> Cmd msg
