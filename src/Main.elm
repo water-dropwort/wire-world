@@ -142,7 +142,7 @@ update msg model =
             when (model.appState == Editing) { model | appState = Pause }
 
         ClearAllState ->
-            when (model.appState == Editing) { model | matrix = initialMatrix }
+            ( { model | matrix = initialMatrix }, Cmd.none )
 
         SetState state ->
             when (model.appState == Editing) (setStateToCursorPosn state model)
@@ -383,7 +383,7 @@ viewCommandBar model =
                 [ H.text "Edit mode" ]
             , H.button
                 [ HE.onClick ClearAllState
-                , HA.disabled (model.appState /= Editing)
+                , HA.disabled (model.appState == Working)
                 ]
                 [ H.text "Clear all state" ]
             ]
