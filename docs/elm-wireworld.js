@@ -6567,12 +6567,11 @@ var author$project$Main$update = F2(
 						model,
 						{appState: author$project$Main$Pause}));
 			case 'ClearAllState':
-				return A2(
-					when,
-					_Utils_eq(model.appState, author$project$Main$Editing),
+				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{matrix: author$project$Main$initialMatrix}));
+						{matrix: author$project$Main$initialMatrix}),
+					elm$core$Platform$Cmd$none);
 			case 'SetState':
 				var state = msg.a;
 				return A2(
@@ -6770,7 +6769,7 @@ var author$project$Main$viewCommandBar = function (model) {
 							[
 								elm$html$Html$Events$onClick(author$project$Main$ClearAllState),
 								elm$html$Html$Attributes$disabled(
-								!_Utils_eq(model.appState, author$project$Main$Editing))
+								_Utils_eq(model.appState, author$project$Main$Working))
 							]),
 						_List_fromArray(
 							[
