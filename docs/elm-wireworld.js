@@ -6637,17 +6637,17 @@ var elm$html$Html$Events$on = F2(
 	});
 var author$project$Main$onKeyDown = A2(elm$html$Html$Events$on, 'keypress', author$project$Main$keyDecoder);
 var author$project$Main$ClearAllState = {$: 'ClearAllState'};
-var author$project$Main$CsvRequested = {$: 'CsvRequested'};
-var author$project$Main$EditModeOff = {$: 'EditModeOff'};
-var author$project$Main$EditModeOn = {$: 'EditModeOn'};
-var author$project$Main$Start = {$: 'Start'};
-var author$project$Main$Stop = {$: 'Stop'};
 var elm$html$Html$button = _VirtualDom_node('button');
-var elm$html$Html$div = _VirtualDom_node('div');
-var elm$html$Html$input = _VirtualDom_node('input');
-var elm$html$Html$label = _VirtualDom_node('label');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
+var elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$string(string));
+	});
+var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
 var elm$json$Json$Encode$bool = _Json_wrap;
 var elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
@@ -6656,15 +6656,95 @@ var elm$html$Html$Attributes$boolProperty = F2(
 			key,
 			elm$json$Json$Encode$bool(bool));
 	});
-var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
 var elm$html$Html$Attributes$disabled = elm$html$Html$Attributes$boolProperty('disabled');
-var elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
+var elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
+var author$project$Main$viewButton = F4(
+	function (disabledCond, act, label, model) {
 		return A2(
-			_VirtualDom_property,
-			key,
-			elm$json$Json$Encode$string(string));
+			elm$html$Html$button,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('cmdbar__button'),
+					elm$html$Html$Attributes$disabled(
+					disabledCond(model)),
+					elm$html$Html$Events$onClick(act)
+				]),
+			_List_fromArray(
+				[
+					elm$html$Html$text(label)
+				]));
 	});
+var author$project$Main$viewClearButton = function (model) {
+	return A4(
+		author$project$Main$viewButton,
+		function (m) {
+			return _Utils_eq(m.appState, author$project$Main$Working);
+		},
+		author$project$Main$ClearAllState,
+		'Clear',
+		model);
+};
+var author$project$Main$CsvRequested = {$: 'CsvRequested'};
+var author$project$Main$viewImportButton = function (model) {
+	return A4(
+		author$project$Main$viewButton,
+		function (m) {
+			return _Utils_eq(m.appState, author$project$Main$Working);
+		},
+		author$project$Main$CsvRequested,
+		'Import',
+		model);
+};
+var author$project$Main$Start = {$: 'Start'};
+var author$project$Main$viewStartButton = function (model) {
+	return A4(
+		author$project$Main$viewButton,
+		function (m) {
+			return _Utils_eq(m.appState, author$project$Main$Working);
+		},
+		author$project$Main$Start,
+		'Start',
+		model);
+};
+var author$project$Main$Stop = {$: 'Stop'};
+var author$project$Main$viewStopButton = function (model) {
+	return A4(
+		author$project$Main$viewButton,
+		function (m) {
+			return !_Utils_eq(m.appState, author$project$Main$Working);
+		},
+		author$project$Main$Stop,
+		'Stop',
+		model);
+};
+var elm$html$Html$div = _VirtualDom_node('div');
+var author$project$Main$viewCommandBar = function (model) {
+	return A2(
+		elm$html$Html$div,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$class('cmdbar')
+			]),
+		_List_fromArray(
+			[
+				author$project$Main$viewStartButton(model),
+				author$project$Main$viewStopButton(model),
+				author$project$Main$viewImportButton(model),
+				author$project$Main$viewClearButton(model)
+			]));
+};
+var author$project$Main$EditModeOff = {$: 'EditModeOff'};
+var author$project$Main$EditModeOn = {$: 'EditModeOn'};
+var elm$html$Html$input = _VirtualDom_node('input');
+var elm$html$Html$label = _VirtualDom_node('label');
+var elm$html$Html$li = _VirtualDom_node('li');
+var elm$html$Html$ul = _VirtualDom_node('ul');
+var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
 var elm$html$Html$Attributes$for = elm$html$Html$Attributes$stringProperty('htmlFor');
 var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
 var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
@@ -6684,101 +6764,85 @@ var elm$html$Html$Events$onCheck = function (tagger) {
 		'change',
 		A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetChecked));
 };
-var elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		elm$html$Html$Events$on,
-		'click',
-		elm$json$Json$Decode$succeed(msg));
-};
-var author$project$Main$viewCommandBar = function (model) {
+var author$project$Main$viewEditModeCtrl = function (model) {
 	return A2(
 		elm$html$Html$div,
-		_List_Nil,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$class('edtmd')
+			]),
 		_List_fromArray(
 			[
 				A2(
-				elm$html$Html$button,
+				elm$html$Html$input,
 				_List_fromArray(
 					[
-						elm$html$Html$Events$onClick(author$project$Main$Start),
+						elm$html$Html$Attributes$type_('checkbox'),
+						elm$html$Html$Attributes$id('chkeditmode'),
+						elm$html$Html$Events$onCheck(
+						function (t) {
+							return t ? author$project$Main$EditModeOn : author$project$Main$EditModeOff;
+						}),
 						elm$html$Html$Attributes$disabled(
-						_Utils_eq(model.appState, author$project$Main$Working))
+						_Utils_eq(model.appState, author$project$Main$Working)),
+						elm$html$Html$Attributes$checked(
+						_Utils_eq(model.appState, author$project$Main$Editing)),
+						elm$html$Html$Attributes$class('edtmd__checkbox')
 					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text('Start')
-					])),
+				_List_Nil),
 				A2(
-				elm$html$Html$button,
+				elm$html$Html$label,
 				_List_fromArray(
 					[
-						elm$html$Html$Events$onClick(author$project$Main$Stop),
-						elm$html$Html$Attributes$disabled(
-						!_Utils_eq(model.appState, author$project$Main$Working))
+						elm$html$Html$Attributes$for('chkeditmode'),
+						elm$html$Html$Attributes$class('edtmd__cblabel')
 					]),
 				_List_fromArray(
 					[
-						elm$html$Html$text('Stop')
-					])),
-				A2(
-				elm$html$Html$button,
-				_List_fromArray(
-					[
-						elm$html$Html$Events$onClick(author$project$Main$CsvRequested),
-						elm$html$Html$Attributes$disabled(
-						_Utils_eq(model.appState, author$project$Main$Working))
-					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text('Import Csv')
+						elm$html$Html$text('Edit mode')
 					])),
 				A2(
 				elm$html$Html$div,
-				_List_Nil,
 				_List_fromArray(
 					[
+						elm$html$Html$Attributes$class('edtmddsc')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('Press the key to operate.'),
 						A2(
-						elm$html$Html$input,
+						elm$html$Html$ul,
 						_List_fromArray(
 							[
-								elm$html$Html$Attributes$type_('checkbox'),
-								elm$html$Html$Attributes$id('chkeditmode'),
-								elm$html$Html$Events$onCheck(
-								function (t) {
-									return t ? author$project$Main$EditModeOn : author$project$Main$EditModeOff;
-								}),
-								elm$html$Html$Attributes$disabled(
-								_Utils_eq(model.appState, author$project$Main$Working)),
-								elm$html$Html$Attributes$checked(
-								_Utils_eq(model.appState, author$project$Main$Editing))
-							]),
-						_List_Nil),
-						A2(
-						elm$html$Html$label,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$for('chkeditmode')
+								elm$html$Html$Attributes$class('edtmddscl')
 							]),
 						_List_fromArray(
 							[
-								elm$html$Html$text('Edit mode')
-							])),
-						A2(
-						elm$html$Html$button,
-						_List_fromArray(
-							[
-								elm$html$Html$Events$onClick(author$project$Main$ClearAllState),
-								elm$html$Html$Attributes$disabled(
-								_Utils_eq(model.appState, author$project$Main$Working))
-							]),
-						_List_fromArray(
-							[
-								elm$html$Html$text('Clear all state')
+								A2(
+								elm$html$Html$li,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$class('edtmddscl__item')
+									]),
+								_List_fromArray(
+									[
+										elm$html$Html$text('Arrow : Move the cursor.')
+									])),
+								A2(
+								elm$html$Html$li,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$class('edtmddscl__item')
+									]),
+								_List_fromArray(
+									[
+										elm$html$Html$text('1 ~ 4 : Set the state to the cell selected by the cursor.')
+									]))
 							]))
 					]))
 			]));
 };
-var author$project$Main$cellSize = 30;
+var author$project$Main$cellSize = 25;
 var author$project$Main$fillColor = function (state) {
 	switch (state.$) {
 		case 'Empty':
@@ -6872,6 +6936,7 @@ var author$project$Main$viewCursor = F2(
 var author$project$Matrix$toList = function (mat) {
 	return elm$core$Array$toList(mat.data);
 };
+var elm$svg$Svg$Attributes$class = _VirtualDom_attribute('class');
 var author$project$Main$viewMatrix = function (model) {
 	var _n0 = model.cursorPosn;
 	var row = _n0.a;
@@ -6883,7 +6948,8 @@ var author$project$Main$viewMatrix = function (model) {
 				elm$svg$Svg$Attributes$height(
 				elm$core$String$fromFloat(author$project$Main$matrixRowLength * author$project$Main$cellSize)),
 				elm$svg$Svg$Attributes$width(
-				elm$core$String$fromFloat(author$project$Main$matrixColLength * author$project$Main$cellSize))
+				elm$core$String$fromFloat(author$project$Main$matrixColLength * author$project$Main$cellSize)),
+				elm$svg$Svg$Attributes$class('cellmat')
 			]),
 		_Utils_ap(
 			author$project$Matrix$toList(
@@ -6893,15 +6959,202 @@ var author$project$Main$viewMatrix = function (model) {
 					A2(author$project$Main$viewCursor, row, col)
 				]) : _List_Nil));
 };
+var elm$html$Html$br = _VirtualDom_node('br');
+var elm$html$Html$span = _VirtualDom_node('span');
+var elm$html$Html$table = _VirtualDom_node('table');
+var elm$html$Html$tbody = _VirtualDom_node('tbody');
+var elm$html$Html$td = _VirtualDom_node('td');
+var elm$html$Html$th = _VirtualDom_node('th');
+var elm$html$Html$thead = _VirtualDom_node('thead');
+var elm$html$Html$tr = _VirtualDom_node('tr');
+var author$project$Main$viewStateDescription = function () {
+	var cellitem = function (contents) {
+		return A2(
+			elm$html$Html$td,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('stdsct__cell'),
+					elm$html$Html$Attributes$class('stdsct__cell--item')
+				]),
+			contents);
+	};
+	var descItem = F3(
+		function (state, label, nextStateDesc) {
+			return A2(
+				elm$html$Html$tr,
+				_List_Nil,
+				_List_fromArray(
+					[
+						cellitem(
+						_List_fromArray(
+							[
+								A2(
+								elm$svg$Svg$svg,
+								_List_fromArray(
+									[
+										elm$svg$Svg$Attributes$class('stdsct__icon'),
+										elm$svg$Svg$Attributes$class('stdsct__icon--frame')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$svg$Svg$rect,
+										_List_fromArray(
+											[
+												elm$svg$Svg$Attributes$class('stdsct__icon'),
+												elm$svg$Svg$Attributes$fill(
+												author$project$Main$fillColor(state))
+											]),
+										_List_Nil)
+									])),
+								A2(
+								elm$html$Html$span,
+								_List_Nil,
+								_List_fromArray(
+									[
+										elm$html$Html$text(label)
+									]))
+							])),
+						cellitem(
+						_List_fromArray(
+							[
+								A2(
+								elm$html$Html$span,
+								_List_Nil,
+								_List_fromArray(
+									[nextStateDesc]))
+							]))
+					]));
+		});
+	var cellheader = function (contents) {
+		return A2(
+			elm$html$Html$th,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('stdsct__cell'),
+					elm$html$Html$Attributes$class('stdsct__cell--header')
+				]),
+			contents);
+	};
+	return A2(
+		elm$html$Html$div,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$class('stdsc')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$table,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('stdsc__table')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$thead,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								elm$html$Html$tr,
+								_List_Nil,
+								_List_fromArray(
+									[
+										cellheader(
+										_List_fromArray(
+											[
+												elm$html$Html$text('State')
+											])),
+										cellheader(
+										_List_fromArray(
+											[
+												elm$html$Html$text('Next State')
+											]))
+									]))
+							])),
+						A2(
+						elm$html$Html$tbody,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								descItem,
+								author$project$Main$Empty,
+								'1:Empty',
+								elm$html$Html$text('Empty')),
+								A3(
+								descItem,
+								author$project$Main$Conductor,
+								'2:Conductor',
+								A2(
+									elm$html$Html$div,
+									_List_Nil,
+									_List_fromArray(
+										[
+											elm$html$Html$text('Head (if there are 1 or 2 neighbourhood Head cells.)'),
+											A2(elm$html$Html$br, _List_Nil, _List_Nil),
+											elm$html$Html$text('Conductor (otherwise)')
+										]))),
+								A3(
+								descItem,
+								author$project$Main$Head,
+								'3:Head',
+								elm$html$Html$text('Tail')),
+								A3(
+								descItem,
+								author$project$Main$Tail,
+								'4:Tail',
+								elm$html$Html$text('Conductor'))
+							]))
+					]))
+			]));
+}();
+var elm$html$Html$header = _VirtualDom_node('header');
+var elm$html$Html$main_ = _VirtualDom_node('main');
 var author$project$Main$view = function (model) {
 	return A2(
 		elm$html$Html$div,
 		_List_fromArray(
-			[author$project$Main$onKeyDown]),
+			[
+				author$project$Main$onKeyDown,
+				elm$html$Html$Attributes$class('app')
+			]),
 		_List_fromArray(
 			[
-				author$project$Main$viewCommandBar(model),
-				author$project$Main$viewMatrix(model)
+				A2(
+				elm$html$Html$header,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('app__header')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$div,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('header__title')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text('Wireworld')
+							]))
+					])),
+				A2(
+				elm$html$Html$main_,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('app__main')
+					]),
+				_List_fromArray(
+					[
+						author$project$Main$viewCommandBar(model),
+						author$project$Main$viewEditModeCtrl(model),
+						author$project$Main$viewMatrix(model),
+						author$project$Main$viewStateDescription
+					]))
 			]));
 };
 var elm$browser$Browser$element = _Browser_element;

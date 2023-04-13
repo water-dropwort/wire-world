@@ -92,7 +92,7 @@ cursorInitialPosn =
 
 cellSize : Float
 cellSize =
-    30
+    25
 
 
 
@@ -331,9 +331,22 @@ toCellStateMatrix content =
 view : Model -> H.Html Msg
 view model =
     H.div
-        [ onKeyDown ]
-        [ viewCommandBar model
-        , viewMatrix model
+        [ onKeyDown
+        , HA.class "app"
+        ]
+        [ H.header
+            [ HA.class "app__header" ]
+            [ H.div
+                [ HA.class "header__title" ]
+                [ H.text "Wireworld" ]
+            ]
+        , H.main_
+            [ HA.class "app__main" ]
+            [ viewCommandBar model
+            , viewEditModeCtrl model
+            , viewMatrix model
+            , viewStateDescription
+            ]
         ]
 
 
@@ -345,47 +358,81 @@ onKeyDown =
 viewCommandBar : Model -> H.Html Msg
 viewCommandBar model =
     H.div
-        []
-        [ H.button
-            [ HE.onClick Start
-            , HA.disabled (model.appState == Working)
-            ]
-            [ H.text "Start" ]
-        , H.button
-            [ HE.onClick Stop
-            , HA.disabled (model.appState /= Working)
-            ]
-            [ H.text "Stop" ]
-        , H.button
-            [ HE.onClick CsvRequested
-            , HA.disabled (model.appState == Working)
-            ]
-            [ H.text "Import Csv" ]
-        , H.div
-            []
-            [ H.input
-                [ HA.type_ "checkbox"
-                , HA.id "chkeditmode"
-                , HE.onCheck
-                    (\t ->
-                        if t then
-                            EditModeOn
+        [ HA.class "cmdbar" ]
+        [ viewStartButton model
+        , viewStopButton model
+        , viewImportButton model
+        , viewClearButton model
+        ]
 
-                        else
-                            EditModeOff
-                    )
-                , HA.disabled (model.appState == Working)
-                , HA.checked (model.appState == Editing)
+
+viewButton : (Model -> Bool) -> Msg -> String -> Model -> H.Html Msg
+viewButton disabledCond act label model =
+    H.button
+        [ HA.class "cmdbar__button"
+        , HA.disabled (disabledCond model)
+        , HE.onClick act
+        ]
+        [ H.text label ]
+
+
+viewStartButton : Model -> H.Html Msg
+viewStartButton model =
+    viewButton (\m -> m.appState == Working) Start "Start" model
+
+
+viewStopButton : Model -> H.Html Msg
+viewStopButton model =
+    viewButton (\m -> m.appState /= Working) Stop "Stop" model
+
+
+viewImportButton : Model -> H.Html Msg
+viewImportButton model =
+    viewButton (\m -> m.appState == Working) CsvRequested "Import" model
+
+
+viewClearButton : Model -> H.Html Msg
+viewClearButton model =
+    viewButton (\m -> m.appState == Working) ClearAllState "Clear" model
+
+
+viewEditModeCtrl : Model -> H.Html Msg
+viewEditModeCtrl model =
+    H.div
+        [ HA.class "edtmd" ]
+        [ H.input
+            [ HA.type_ "checkbox"
+            , HA.id "chkeditmode"
+            , HE.onCheck
+                (\t ->
+                    if t then
+                        EditModeOn
+
+                    else
+                        EditModeOff
+                )
+            , HA.disabled (model.appState == Working)
+            , HA.checked (model.appState == Editing)
+            , HA.class "edtmd__checkbox"
+            ]
+            []
+        , H.label
+            [ HA.for "chkeditmode"
+            , HA.class "edtmd__cblabel"
+            ]
+            [ H.text "Edit mode" ]
+        , H.div
+            [ HA.class "edtmddsc" ]
+            [ H.text "Press the key to operate."
+            , H.ul
+                [ HA.class "edtmddscl" ]
+                [ H.li
+                    [ HA.class "edtmddscl__item" ]
+                    [ H.text "Arrow : Move the cursor." ]
+                , H.li
+                    [ HA.class "edtmddscl__item" ]
+                    [ H.text "1 ~ 4 : Set the state to the cell selected by the cursor." ]
                 ]
-                []
-            , H.label
-                [ HA.for "chkeditmode" ]
-                [ H.text "Edit mode" ]
-            , H.button
-                [ HE.onClick ClearAllState
-                , HA.disabled (model.appState == Working)
-                ]
-                [ H.text "Clear all state" ]
             ]
         ]
 
@@ -399,6 +446,7 @@ viewMatrix model =
     S.svg
         [ SA.height (String.fromFloat (toFloat matrixRowLength * cellSize))
         , SA.width (String.fromFloat (toFloat matrixColLength * cellSize))
+        , SA.class "cellmat"
         ]
         (Mat.toList (Mat.indexedMap viewCell model.matrix)
             ++ (if model.appState == Editing then
@@ -468,6 +516,80 @@ translate row col =
         , ","
         , String.fromFloat (toFloat row * cellSize)
         , ")"
+        ]
+
+
+viewStateDescription : H.Html Msg
+viewStateDescription =
+    let
+        cellheader contents =
+            H.th
+                [ HA.class "stdsct__cell"
+                , HA.class "stdsct__cell--header"
+                ]
+                contents
+
+        cellitem contents =
+            H.td
+                [ HA.class "stdsct__cell"
+                , HA.class "stdsct__cell--item"
+                ]
+                contents
+
+        descItem state label nextStateDesc =
+            H.tr
+                []
+                [ cellitem
+                    [ S.svg
+                        [ SA.class "stdsct__icon"
+                        , SA.class "stdsct__icon--frame"
+                        ]
+                        [ S.rect
+                            [ SA.class "stdsct__icon"
+                            , SA.fill (fillColor state)
+                            ]
+                            []
+                        ]
+                    , H.span
+                        []
+                        [ H.text label ]
+                    ]
+                , cellitem
+                    [ H.span
+                        []
+                        [ nextStateDesc ]
+                    ]
+                ]
+    in
+    H.div
+        [ HA.class "stdsc" ]
+        [ H.table
+            [ HA.class "stdsc__table" ]
+            [ H.thead
+                []
+                [ H.tr
+                    []
+                    [ cellheader [ H.text "State" ]
+                    , cellheader [ H.text "Next State" ]
+                    ]
+                ]
+            , H.tbody
+                []
+                [ descItem Empty "1:Empty" <|
+                    H.text "Empty"
+                , descItem Conductor "2:Conductor" <|
+                    H.div
+                        []
+                        [ H.text "Head (if there are 1 or 2 neighbourhood Head cells.)"
+                        , H.br [] []
+                        , H.text "Conductor (otherwise)"
+                        ]
+                , descItem Head "3:Head" <|
+                    H.text "Tail"
+                , descItem Tail "4:Tail" <|
+                    H.text "Conductor"
+                ]
+            ]
         ]
 
 
