@@ -1,0 +1,132 @@
+.app {
+    margin-left : 2em;
+    margin-top : 2em;
+    width : 50em;
+}
+
+.app__header {
+    margin-top : 0.25em;
+    margin-bottom : 0.25em;
+    border-bottom : solid 1px black;
+}
+
+.header__title {
+    font-size : 1.5em;
+    font-weight : bold;
+    margin-left : 0.25em;
+}
+
+.app__main {
+    margin-left : 1.5em;
+}
+
+/* for command bar */
+.cmdbar {
+    padding : 1em 0.5em 1em 0;
+}
+
+.cmdbar__button {
+    color : white;
+    background : rgb(0,122,255);
+    border : 0;
+    padding : 0.5em;
+    margin : 0 1em 0 0;
+    width : 6em;
+    font-size : 1em;
+    border-radius : 0.5em;
+}
+
+.cmdbar__button:hover {
+    background : rgba(0,122,255, 0.7);
+    cursor : pointer;
+}
+
+.cmdbar__button:disabled {
+    background : lightgray;
+    color : gray;
+    cursor : auto;
+}
+
+/* for edit mode */
+.edtmd__checkbox {
+    margin-right : 0.5em;
+    width : 1em;
+    height : 1em;
+}
+
+.edtmd__checkbox:hover {
+    cursor : pointer;
+}
+
+.edtmd__checkbox:disabled {
+    cursor : default;
+}
+
+.edtmd__cblabel {
+    cursor : pointer;
+}
+
+.edtmd__checkbox:checked ~ .edtmd__cblabel {
+    font-weight : bold;
+}
+
+.edtmd__checkbox:disabled ~ .edtmd__cblabel {
+    color : gray;
+    cursor : default;
+}
+
+/* for edit mode description */
+.edtmddsc {
+    margin-left : 1.75em;
+    font-size : 0.9em;
+    color : gray;
+}
+
+.edtmd__checkbox:checked ~ .edtmddsc {
+    color : black;
+}
+
+.edtmddscl {
+    margin : 0;
+}
+
+.edtmddscl__item {
+    list-style-type : "- "
+}
+
+/* for cell matrix */
+/* Note: Width and height are specified in Elm. */
+.cellmat {
+    margin : 0.5em 0.5em 0.5em 0;
+}
+
+/* for state description */
+.stdsc__table {
+    margin-top : 0.5em;
+    border-collapse : collapse;
+}
+
+.stdsct__cell {
+    padding : 0.25em 1.5em 0.25em 0.5em;
+}
+
+.stdsct__cell--header {
+    background : gray;
+    color : white;
+    text-align : left;
+    font-weight : normal;
+}
+
+.stdsct__cell--item {
+    border-bottom : solid 1px black;
+}
+
+.stdsct__icon {
+    width : 1em;
+    height : 1em;
+    margin-right : 0.5em;
+}
+
+.stdsct__icon--frame {
+    stroke : gray;
+}
