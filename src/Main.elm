@@ -580,7 +580,7 @@ viewStateDescription =
                 , descItem Conductor "2:Conductor" <|
                     H.div
                         []
-                        [ H.text "Head (if there are 1 or 2 neighbourhood Head cells.)"
+                        [ H.text "Head (if there are 1 or 2 Head cells in the Moore neighborhood.)"
                         , H.br [] []
                         , H.text "Conductor (otherwise)"
                         ]

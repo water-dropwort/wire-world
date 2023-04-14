@@ -7093,7 +7093,7 @@ var author$project$Main$viewStateDescription = function () {
 									_List_Nil,
 									_List_fromArray(
 										[
-											elm$html$Html$text('Head (if there are 1 or 2 neighbourhood Head cells.)'),
+											elm$html$Html$text('Head (if there are 1 or 2 Head cells in the Moore neighborhood.)'),
 											A2(elm$html$Html$br, _List_Nil, _List_Nil),
 											elm$html$Html$text('Conductor (otherwise)')
 										]))),
