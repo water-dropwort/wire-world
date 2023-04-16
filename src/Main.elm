@@ -130,16 +130,28 @@ update msg model =
     in
     case msg of
         Start ->
-            ( { model | appState = Working }, Cmd.none )
+            if model.appState == Editing then
+                ( { model | appState = Working }, preventArrowKey False )
+
+            else
+                ( { model | appState = Working }, Cmd.none )
 
         Stop ->
             when (model.appState == Working) { model | appState = Pause }
 
         EditModeOn ->
-            when (model.appState == Pause) { model | appState = Editing }
+            if model.appState == Pause then
+                ( { model | appState = Editing }, preventArrowKey True )
+
+            else
+                ( model, Cmd.none )
 
         EditModeOff ->
-            when (model.appState == Editing) { model | appState = Pause }
+            if model.appState == Editing then
+                ( { model | appState = Pause }, preventArrowKey False )
+
+            else
+                ( model, Cmd.none )
 
         ClearAllState ->
             ( { model | matrix = initialMatrix }, Cmd.none )
@@ -646,3 +658,6 @@ keyToMsg key =
 
 
 port showErrorMessage : String -> Cmd msg
+
+
+port preventArrowKey : Bool -> Cmd msg
