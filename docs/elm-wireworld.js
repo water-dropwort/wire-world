@@ -6178,6 +6178,8 @@ var author$project$Main$moveCursor = F2(
 					});
 		}
 	});
+var elm$json$Json$Encode$bool = _Json_wrap;
+var author$project$Main$preventArrowKey = _Platform_outgoingPort('preventArrowKey', elm$json$Json$Encode$bool);
 var elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
 var elm$core$Array$bitMask = 4294967295 >>> (32 - elm$core$Array$shiftStep);
 var elm$core$Bitwise$and = _Bitwise_and;
@@ -6540,7 +6542,11 @@ var author$project$Main$update = F2(
 			});
 		switch (msg.$) {
 			case 'Start':
-				return _Utils_Tuple2(
+				return _Utils_eq(model.appState, author$project$Main$Editing) ? _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{appState: author$project$Main$Working}),
+					author$project$Main$preventArrowKey(false)) : _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{appState: author$project$Main$Working}),
@@ -6553,19 +6559,17 @@ var author$project$Main$update = F2(
 						model,
 						{appState: author$project$Main$Pause}));
 			case 'EditModeOn':
-				return A2(
-					when,
-					_Utils_eq(model.appState, author$project$Main$Pause),
+				return _Utils_eq(model.appState, author$project$Main$Pause) ? _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{appState: author$project$Main$Editing}));
+						{appState: author$project$Main$Editing}),
+					author$project$Main$preventArrowKey(true)) : _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 			case 'EditModeOff':
-				return A2(
-					when,
-					_Utils_eq(model.appState, author$project$Main$Editing),
+				return _Utils_eq(model.appState, author$project$Main$Editing) ? _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{appState: author$project$Main$Pause}));
+						{appState: author$project$Main$Pause}),
+					author$project$Main$preventArrowKey(false)) : _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 			case 'ClearAllState':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -6648,7 +6652,6 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			elm$json$Json$Encode$string(string));
 	});
 var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
-var elm$json$Json$Encode$bool = _Json_wrap;
 var elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
 		return A2(

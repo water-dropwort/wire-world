@@ -10,11 +10,25 @@
     <div id="elm-wireworld"></div>
     <script>
       var app = Elm.Main.init({
-      node: document.getElementById("elm-wireworld")
+          node: document.getElementById("elm-wireworld")
       });
 
       app.ports.showErrorMessage.subscribe(function(message) {
-      window.alert(message);
+          window.alert(message);
+      });
+
+      let preventArrowKey = (event) => {
+          if (event.keyCode >= 37 && event.keyCode <= 40) {
+              event.preventDefault();
+          }
+      }
+      app.ports.preventArrowKey.subscribe(function(needPreventing) {
+          if (needPreventing) {
+              document.addEventListener("keydown", preventArrowKey);
+          }
+          else {
+              document.removeEventListener("keydown", preventArrowKey);
+          }
       });
     </script>
   </body>
