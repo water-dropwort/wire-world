@@ -5171,6 +5171,8 @@ var author$project$Main$keyToMsg = function (key) {
 			return author$project$Main$SetState(author$project$Main$Head);
 		case '4':
 			return author$project$Main$SetState(author$project$Main$Tail);
+		case 'Delete':
+			return author$project$Main$SetState(author$project$Main$Empty);
 		default:
 			return author$project$Main$Noop;
 	}

@@ -649,6 +649,9 @@ keyToMsg key =
         "4" ->
             SetState Tail
 
+        "Delete" ->
+            SetState Empty
+
         _ ->
             Noop
 
