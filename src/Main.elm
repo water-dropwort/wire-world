@@ -11,6 +11,7 @@ import Json.Decode as D
 import Matrix as Mat
 import Svg as S
 import Svg.Attributes as SA
+import Svg.Events as SE
 import Task
 import Time
 
@@ -63,6 +64,7 @@ type Msg
     | EditModeOff
     | ClearAllState
     | MoveCursor Direction
+    | SetCursorPosn ( Int, Int )
     | SetState CellState
     | Tick Time.Posix
     | CsvRequested
@@ -161,6 +163,9 @@ update msg model =
 
         MoveCursor direction ->
             when (model.appState == Editing) (moveCursor direction model)
+
+        SetCursorPosn posn ->
+            when (model.appState == Editing) { model | cursorPosn = posn }
 
         Tick _ ->
             when (model.appState == Working) (updateMatrix model)
@@ -479,6 +484,7 @@ viewCell row col state =
         , SA.transform (translate row col)
         , SA.stroke "gray"
         , SA.strokeWidth "1"
+        , SE.onClick (SetCursorPosn ( row, col ))
         ]
         []
 

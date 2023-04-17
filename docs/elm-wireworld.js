@@ -6590,6 +6590,14 @@ var author$project$Main$update = F2(
 					when,
 					_Utils_eq(model.appState, author$project$Main$Editing),
 					A2(author$project$Main$moveCursor, direction, model));
+			case 'SetCursorPosn':
+				var posn = msg.a;
+				return A2(
+					when,
+					_Utils_eq(model.appState, author$project$Main$Editing),
+					_Utils_update(
+						model,
+						{cursorPosn: posn}));
 			case 'Tick':
 				return A2(
 					when,
@@ -6848,6 +6856,9 @@ var author$project$Main$viewEditModeCtrl = function (model) {
 			]));
 };
 var author$project$Main$cellSize = 25;
+var author$project$Main$SetCursorPosn = function (a) {
+	return {$: 'SetCursorPosn', a: a};
+};
 var author$project$Main$fillColor = function (state) {
 	switch (state.$) {
 		case 'Empty':
@@ -6884,6 +6895,12 @@ var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var elm$svg$Svg$Attributes$transform = _VirtualDom_attribute('transform');
 var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var elm$svg$Svg$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
 var author$project$Main$viewCell = F3(
 	function (row, col, state) {
 		return A2(
@@ -6899,7 +6916,10 @@ var author$project$Main$viewCell = F3(
 					elm$svg$Svg$Attributes$transform(
 					A2(author$project$Main$translate, row, col)),
 					elm$svg$Svg$Attributes$stroke('gray'),
-					elm$svg$Svg$Attributes$strokeWidth('1')
+					elm$svg$Svg$Attributes$strokeWidth('1'),
+					elm$svg$Svg$Events$onClick(
+					author$project$Main$SetCursorPosn(
+						_Utils_Tuple2(row, col)))
 				]),
 			_List_Nil);
 	});
