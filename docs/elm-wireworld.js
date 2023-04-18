@@ -5171,6 +5171,8 @@ var author$project$Main$keyToMsg = function (key) {
 			return author$project$Main$SetState(author$project$Main$Head);
 		case '4':
 			return author$project$Main$SetState(author$project$Main$Tail);
+		case 'Delete':
+			return author$project$Main$SetState(author$project$Main$Empty);
 		default:
 			return author$project$Main$Noop;
 	}
@@ -6128,6 +6130,92 @@ var author$project$Main$CsvSelected = function (a) {
 };
 var author$project$Main$Editing = {$: 'Editing'};
 var author$project$Main$Working = {$: 'Working'};
+var elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var elm$core$Elm$JsArray$foldl = _JsArray_foldl;
+var elm$core$Elm$JsArray$indexedMap = _JsArray_indexedMap;
+var elm$core$Array$indexedMap = F2(
+	function (func, _n0) {
+		var len = _n0.a;
+		var tree = _n0.c;
+		var tail = _n0.d;
+		var initialBuilder = {
+			nodeList: _List_Nil,
+			nodeListSize: 0,
+			tail: A3(
+				elm$core$Elm$JsArray$indexedMap,
+				func,
+				elm$core$Array$tailIndex(len),
+				tail)
+		};
+		var helper = F2(
+			function (node, builder) {
+				if (node.$ === 'SubTree') {
+					var subTree = node.a;
+					return A3(elm$core$Elm$JsArray$foldl, helper, builder, subTree);
+				} else {
+					var leaf = node.a;
+					var offset = builder.nodeListSize * elm$core$Array$branchFactor;
+					var mappedLeaf = elm$core$Array$Leaf(
+						A3(elm$core$Elm$JsArray$indexedMap, func, offset, leaf));
+					return {
+						nodeList: A2(elm$core$List$cons, mappedLeaf, builder.nodeList),
+						nodeListSize: builder.nodeListSize + 1,
+						tail: builder.tail
+					};
+				}
+			});
+		return A2(
+			elm$core$Array$builderToArray,
+			true,
+			A3(elm$core$Elm$JsArray$foldl, helper, initialBuilder, tree));
+	});
+var author$project$Matrix$indexedMap = F2(
+	function (f, mat) {
+		return {
+			columnLength: mat.columnLength,
+			data: A2(
+				elm$core$Array$indexedMap,
+				F2(
+					function (i, v) {
+						var row = (i / mat.columnLength) | 0;
+						var col = i - (((i / mat.columnLength) | 0) * mat.columnLength);
+						return A3(f, row, col, v);
+					}),
+				mat.data),
+			rowLength: mat.rowLength
+		};
+	});
+var author$project$Matrix$toList = function (mat) {
+	return elm$core$Array$toList(mat.data);
+};
+var elm$core$String$concat = function (strings) {
+	return A2(elm$core$String$join, '', strings);
+};
+var author$project$Main$matrixToCsv = function (model) {
+	var stateToString = function (state) {
+		switch (state.$) {
+			case 'Empty':
+				return '1';
+			case 'Conductor':
+				return '2';
+			case 'Head':
+				return '3';
+			default:
+				return '4';
+		}
+	};
+	var toCsvCell = F3(
+		function (row, col, state) {
+			return (_Utils_cmp(col, author$project$Main$matrixColLength - 1) < 0) ? (stateToString(state) + ',') : ((_Utils_cmp(row, author$project$Main$matrixRowLength - 1) < 0) ? (stateToString(state) + '\u000d\n') : stateToString(state));
+		});
+	return elm$core$String$concat(
+		author$project$Matrix$toList(
+			A2(author$project$Matrix$indexedMap, toCsvCell, model.matrix)));
+};
 var author$project$Main$moveCursor = F2(
 	function (direction, model) {
 		var rowmax = author$project$Main$matrixRowLength - 1;
@@ -6180,7 +6268,6 @@ var author$project$Main$moveCursor = F2(
 	});
 var elm$json$Json$Encode$bool = _Json_wrap;
 var author$project$Main$preventArrowKey = _Platform_outgoingPort('preventArrowKey', elm$json$Json$Encode$bool);
-var elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
 var elm$core$Array$bitMask = 4294967295 >>> (32 - elm$core$Array$shiftStep);
 var elm$core$Bitwise$and = _Bitwise_and;
 var elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
@@ -6207,10 +6294,6 @@ var elm$core$Array$setHelp = F4(
 				tree);
 		}
 	});
-var elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
-var elm$core$Array$tailIndex = function (len) {
-	return (len >>> 5) << 5;
-};
 var elm$core$Basics$ge = _Utils_ge;
 var elm$core$Array$set = F3(
 	function (index, value, array) {
@@ -6451,60 +6534,6 @@ var author$project$Main$neighborhoodHeadCount = F3(
 				_List_fromArray(
 					[-1, 0, 1])));
 	});
-var elm$core$Elm$JsArray$foldl = _JsArray_foldl;
-var elm$core$Elm$JsArray$indexedMap = _JsArray_indexedMap;
-var elm$core$Array$indexedMap = F2(
-	function (func, _n0) {
-		var len = _n0.a;
-		var tree = _n0.c;
-		var tail = _n0.d;
-		var initialBuilder = {
-			nodeList: _List_Nil,
-			nodeListSize: 0,
-			tail: A3(
-				elm$core$Elm$JsArray$indexedMap,
-				func,
-				elm$core$Array$tailIndex(len),
-				tail)
-		};
-		var helper = F2(
-			function (node, builder) {
-				if (node.$ === 'SubTree') {
-					var subTree = node.a;
-					return A3(elm$core$Elm$JsArray$foldl, helper, builder, subTree);
-				} else {
-					var leaf = node.a;
-					var offset = builder.nodeListSize * elm$core$Array$branchFactor;
-					var mappedLeaf = elm$core$Array$Leaf(
-						A3(elm$core$Elm$JsArray$indexedMap, func, offset, leaf));
-					return {
-						nodeList: A2(elm$core$List$cons, mappedLeaf, builder.nodeList),
-						nodeListSize: builder.nodeListSize + 1,
-						tail: builder.tail
-					};
-				}
-			});
-		return A2(
-			elm$core$Array$builderToArray,
-			true,
-			A3(elm$core$Elm$JsArray$foldl, helper, initialBuilder, tree));
-	});
-var author$project$Matrix$indexedMap = F2(
-	function (f, mat) {
-		return {
-			columnLength: mat.columnLength,
-			data: A2(
-				elm$core$Array$indexedMap,
-				F2(
-					function (i, v) {
-						var row = (i / mat.columnLength) | 0;
-						var col = i - (((i / mat.columnLength) | 0) * mat.columnLength);
-						return A3(f, row, col, v);
-					}),
-				mat.data),
-			rowLength: mat.rowLength
-		};
-	});
 var author$project$Main$updateMatrix = function (model) {
 	var updateCell = F3(
 		function (row, col, centerstate) {
@@ -6527,6 +6556,13 @@ var author$project$Main$updateMatrix = function (model) {
 		});
 };
 var elm$file$File$toString = _File_toString;
+var elm$file$File$Download$string = F3(
+	function (name, mime, content) {
+		return A2(
+			elm$core$Task$perform,
+			elm$core$Basics$never,
+			A3(_File_download, name, mime, content));
+	});
 var elm$file$File$Select$file = F2(
 	function (mimes, toMsg) {
 		return A2(
@@ -6588,6 +6624,14 @@ var author$project$Main$update = F2(
 					when,
 					_Utils_eq(model.appState, author$project$Main$Editing),
 					A2(author$project$Main$moveCursor, direction, model));
+			case 'SetCursorPosn':
+				var posn = msg.a;
+				return A2(
+					when,
+					_Utils_eq(model.appState, author$project$Main$Editing),
+					_Utils_update(
+						model,
+						{cursorPosn: posn}));
 			case 'Tick':
 				return A2(
 					when,
@@ -6624,6 +6668,14 @@ var author$project$Main$update = F2(
 						model,
 						author$project$Main$showErrorMessage('Failed to import the csv file.'));
 				}
+			case 'DownloadCsv':
+				return _Utils_Tuple2(
+					model,
+					A3(
+						elm$file$File$Download$string,
+						'wireworld.csv',
+						'text/csv',
+						author$project$Main$matrixToCsv(model)));
 			default:
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 		}
@@ -6692,6 +6744,17 @@ var author$project$Main$viewClearButton = function (model) {
 		'Clear',
 		model);
 };
+var author$project$Main$DownloadCsv = {$: 'DownloadCsv'};
+var author$project$Main$viewExportButton = function (model) {
+	return A4(
+		author$project$Main$viewButton,
+		function (m) {
+			return _Utils_eq(m.appState, author$project$Main$Working);
+		},
+		author$project$Main$DownloadCsv,
+		'Export',
+		model);
+};
 var author$project$Main$CsvRequested = {$: 'CsvRequested'};
 var author$project$Main$viewImportButton = function (model) {
 	return A4(
@@ -6737,6 +6800,7 @@ var author$project$Main$viewCommandBar = function (model) {
 			[
 				author$project$Main$viewStartButton(model),
 				author$project$Main$viewStopButton(model),
+				author$project$Main$viewExportButton(model),
 				author$project$Main$viewImportButton(model),
 				author$project$Main$viewClearButton(model)
 			]));
@@ -6846,6 +6910,9 @@ var author$project$Main$viewEditModeCtrl = function (model) {
 			]));
 };
 var author$project$Main$cellSize = 25;
+var author$project$Main$SetCursorPosn = function (a) {
+	return {$: 'SetCursorPosn', a: a};
+};
 var author$project$Main$fillColor = function (state) {
 	switch (state.$) {
 		case 'Empty':
@@ -6857,9 +6924,6 @@ var author$project$Main$fillColor = function (state) {
 		default:
 			return 'rgb(255,75,0)';
 	}
-};
-var elm$core$String$concat = function (strings) {
-	return A2(elm$core$String$join, '', strings);
 };
 var elm$core$String$fromFloat = _String_fromNumber;
 var author$project$Main$translate = F2(
@@ -6882,6 +6946,12 @@ var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var elm$svg$Svg$Attributes$transform = _VirtualDom_attribute('transform');
 var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var elm$svg$Svg$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
 var author$project$Main$viewCell = F3(
 	function (row, col, state) {
 		return A2(
@@ -6897,7 +6967,10 @@ var author$project$Main$viewCell = F3(
 					elm$svg$Svg$Attributes$transform(
 					A2(author$project$Main$translate, row, col)),
 					elm$svg$Svg$Attributes$stroke('gray'),
-					elm$svg$Svg$Attributes$strokeWidth('1')
+					elm$svg$Svg$Attributes$strokeWidth('1'),
+					elm$svg$Svg$Events$onClick(
+					author$project$Main$SetCursorPosn(
+						_Utils_Tuple2(row, col)))
 				]),
 			_List_Nil);
 	});
@@ -6936,9 +7009,6 @@ var author$project$Main$viewCursor = F2(
 					A2(nonFillRect, 3, 'rgb(255,255,255)')
 				]));
 	});
-var author$project$Matrix$toList = function (mat) {
-	return elm$core$Array$toList(mat.data);
-};
 var elm$svg$Svg$Attributes$class = _VirtualDom_attribute('class');
 var author$project$Main$viewMatrix = function (model) {
 	var _n0 = model.cursorPosn;

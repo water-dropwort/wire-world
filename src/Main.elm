@@ -3,6 +3,7 @@ port module Main exposing (main)
 import Browser
 import Browser.Events
 import File exposing (File)
+import File.Download as Download
 import File.Select as Select
 import Html as H
 import Html.Attributes as HA
@@ -11,6 +12,7 @@ import Json.Decode as D
 import Matrix as Mat
 import Svg as S
 import Svg.Attributes as SA
+import Svg.Events as SE
 import Task
 import Time
 
@@ -63,11 +65,13 @@ type Msg
     | EditModeOff
     | ClearAllState
     | MoveCursor Direction
+    | SetCursorPosn ( Int, Int )
     | SetState CellState
     | Tick Time.Posix
     | CsvRequested
     | CsvSelected File
     | CsvLoaded String
+    | DownloadCsv
     | Noop
 
 
@@ -162,6 +166,9 @@ update msg model =
         MoveCursor direction ->
             when (model.appState == Editing) (moveCursor direction model)
 
+        SetCursorPosn posn ->
+            when (model.appState == Editing) { model | cursorPosn = posn }
+
         Tick _ ->
             when (model.appState == Working) (updateMatrix model)
 
@@ -178,6 +185,9 @@ update msg model =
 
                 Nothing ->
                     ( model, showErrorMessage "Failed to import the csv file." )
+
+        DownloadCsv ->
+            ( model, Download.string "wireworld.csv" "text/csv" (matrixToCsv model) )
 
         Noop ->
             ( model, Cmd.none )
@@ -336,6 +346,38 @@ toCellStateMatrix content =
         Nothing
 
 
+matrixToCsv : Model -> String
+matrixToCsv model =
+    let
+        stateToString state =
+            case state of
+                Empty ->
+                    "1"
+
+                Conductor ->
+                    "2"
+
+                Head ->
+                    "3"
+
+                Tail ->
+                    "4"
+
+        toCsvCell row col state =
+            if col < matrixColLength - 1 then
+                stateToString state ++ ","
+
+            else if row < matrixRowLength - 1 then
+                stateToString state ++ "\u{000D}\n"
+
+            else
+                stateToString state
+    in
+    Mat.indexedMap toCsvCell model.matrix
+        |> Mat.toList
+        |> String.concat
+
+
 
 -- view
 
@@ -373,6 +415,7 @@ viewCommandBar model =
         [ HA.class "cmdbar" ]
         [ viewStartButton model
         , viewStopButton model
+        , viewExportButton model
         , viewImportButton model
         , viewClearButton model
         ]
@@ -406,6 +449,11 @@ viewImportButton model =
 viewClearButton : Model -> H.Html Msg
 viewClearButton model =
     viewButton (\m -> m.appState == Working) ClearAllState "Clear" model
+
+
+viewExportButton : Model -> H.Html Msg
+viewExportButton model =
+    viewButton (\m -> m.appState == Working) DownloadCsv "Export" model
 
 
 viewEditModeCtrl : Model -> H.Html Msg
@@ -479,6 +527,7 @@ viewCell row col state =
         , SA.transform (translate row col)
         , SA.stroke "gray"
         , SA.strokeWidth "1"
+        , SE.onClick (SetCursorPosn ( row, col ))
         ]
         []
 
@@ -648,6 +697,9 @@ keyToMsg key =
 
         "4" ->
             SetState Tail
+
+        "Delete" ->
+            SetState Empty
 
         _ ->
             Noop
